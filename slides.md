@@ -415,6 +415,10 @@ Read:
 
 ---
 
+# Conclusions ?
+
+---
+
 # Erlang
 
 ---
@@ -436,4 +440,325 @@ Read:
 
 ---
 
+![joe.jpg](joe.jpg)
 
+---
+
+# Basic stuff
+
+    !Erlang
+    1> 2 + 15.
+    17
+    2> 49 * 100.
+    4900
+    3> 1892 - 1472.
+    420
+    4> 5 / 2.
+    2.5
+    5> 5 div 2.
+    2
+    6> 5 rem 2.
+    1
+
+---
+
+# Variables
+
+    !erlang
+    1> One.
+    * 1: variable 'One' is unbound
+    2> One = 1.
+    1
+    3> Un = Uno = One = 1.
+    1
+    4> Two = One + One.
+    2
+    5> Two = 2.
+    2
+    6> Two = Two + 1.
+    ** exception error: no match of right hand side value 3
+    7> two = 2.
+    ** exception error: no match of right hand side value 2
+
+---
+
+# Atom
+
+    !erlang
+    1> atom.
+    atom
+    2> atoms_rule.
+    atoms_rule
+    3> atoms_rule@erlang.
+    atoms_rule@erlang
+    4> 'Atoms can be cheated!'.
+    'Atoms can be cheated!'
+    5> atom = 'atom'.
+    atom
+
+---
+
+# Data
+
+Tuple:
+
+    !erlang
+    {1, 2, 3}.
+
+Liste:
+
+    !erlang
+    [1, 2, 3, {numbers,[4,5,6]}, 5.34, atom].
+
+Head/tail:
+
+    !erlang
+    15> [Head|Tail] = NewList.
+    [1,2,3,4]
+    16> Head.
+    1
+    17> Tail.
+    [2,3,4]
+
+Liste compréhension:
+
+    !erlang
+    2> [X || X <- [1,2,3,4,5,6,7,8,9,10], X rem 2 =:= 0].
+    [2,4,6,8,10]
+
+---
+
+# Functions and stuff
+
+    !erlang
+    hello() ->
+        io:format("Hello, world!~n").
+        %% ^ appel au module io
+
+    greet_and_add_two(X) ->
+        hello(),
+        add(X,2).
+
+Conditionnal:
+
+    !erlang
+    function greet(Gender,Name)
+        if Gender == male then
+            print("Hello, Mr. %s!", Name)
+        else if Gender == female then
+            print("Hello, Mrs. %s!", Name)
+        else
+            print("Hello, %s!", Name)
+    end
+
+Pattern matching:
+
+    !erlang
+    greet(male, Name) ->
+        io:format("Hello, Mr. ~s!", [Name]);
+    greet(female, Name) ->
+        io:format("Hello, Mrs. ~s!", [Name]);
+    greet(_, Name) ->
+        io:format("Hello, ~s!", [Name]).
+
+---
+
+# Modules, guards and cases
+
+Module/guards:
+
+    !erlang
+    -module(what_the_if).
+    -export([help_me/1]).
+
+    help_me(Animal) ->
+        Talk = if Animal == cat  -> "meow";
+                Animal == beef -> "mooo";
+                Animal == dog  -> "bark";
+                Animal == tree -> "bark";
+                true -> "fgdadfgna"
+            end,
+        {Animal, "says " ++ Talk ++ "!"}.
+
+Case:
+
+    !erlang
+    case {A,B} of
+        Pattern Guards -> ...
+    end.
+
+---
+
+# Le modèle actor
+
+- mix événementiel / threads
+- threads légés
+- pas de mémoire partagé
+- message passing
+
+---
+
+# Basic concurrence
+
+Spawn (+ lambda):
+
+    !erlang
+    3> spawn(fun() -> io:format("~p~n",[2 + 2]) end).
+    4
+
+---
+
+# Message passing and handling
+
+    !erlang
+    -module(dolphins).
+    -compile(export_all).
+
+    dolphin3() ->
+        receive
+            {From, do_a_flip} ->
+                From ! "How about no?",
+                dolphin3(); %% recurisve calling ourself!
+            {From, fish} ->
+                From ! "So long and thanks for all the fish!";
+            _ ->
+                io:format("Heh, we're smarter than you humans.~n"),
+                dolphin3() %% recurisve calling ourself!
+        end.
+
+Message passing:
+
+    !erlang
+    15> Dolphin3 = spawn(dolphins, dolphin3, []).
+    <0.75.0>
+    16> Dolphin3 ! Dolphin3 ! {self(), do_a_flip}.
+    {<0.32.0>,do_a_flip}
+    17> flush().
+    Shell got "How about no?"
+    Shell got "How about no?"
+    ok
+    18> Dolphin3 ! {self(), unknown_message}.
+    Heh, we're smarter than you humans.
+    {<0.32.0>,unknown_message}
+    19> Dolphin3 ! Dolphin3 ! {self(), fish}.
+    {<0.32.0>,fish}
+    20> flush().
+    Shell got "So long and thanks for all the fish!"
+    ok
+
+---
+
+# Timeout
+
+Syntaxe:
+
+    !erlang
+    receive
+        Match -> Expression1
+    after Delay ->
+        Expression2
+    end.
+
+Example:
+
+    !erlang
+    hello() ->
+        receive
+            {hello} -> "Hello my good sir!"
+        after 3000 ->
+            timeout
+        end.
+
+---
+
+# Links!
+
+![link.png](link.png)
+
+    !erlang
+
+    1> process_flag(trap_exit, true).
+    true
+    2> spawn_link(fun() -> linkmon:chain(3) end).
+    <0.49.0>
+    3> receive X -> X end.
+    {'EXIT',<0.49.0>,"chain dies here"}
+
+---
+
+# OTP<br/>"Open Telecom Platform"
+
+---
+
+# One thing to remember with OTP:<br/>"go OTP or die"
+
+---
+
+# Behaviors
+
+A collection of "behavior" (DP 'template'-like):
+- generic server
+- FSM
+- event handler
+
+---
+
+# Supervisors
+
+- one\_for\_one
+![restart-one-for-one.png](restart-one-for-one.png)
+- one\_for\_all
+![restart-one-for-all.png](restart-one-for-all.png)
+- rest\_for\_one
+![restart-rest-for-one.png](restart-rest-for-one.png)
+
+---
+
+# Launch supervisor
+
+Syntaxe:
+
+    !erlang
+    {ok, {{RestartStrategy, MaxRestart, MaxTime},[ChildSpecs]}}.
+
+    %% child specs
+    {ChildId, StartFunc, Restart, Shutdown, Type, Modules}.
+
+Example:
+
+    !erlang
+    {ok, {{one_for_all, 5, 60},
+        [{fake_id,
+            {fake_mod, start_link, [SomeArg]},
+            permanent,
+            5000,
+            worker,
+            [fake_mod]},
+        {other_id,
+            {event_manager_mod, start_link, []},
+            transient,
+            infinity,
+            worker,
+            dynamic}]}}.
+
+---
+
+# Vague example:
+
+![ppool_supersup.png](ppool_supersup.png)
+
+---
+
+# Hot code loading
+
+![hot-code-loading.png](hot-code-loading.png)
+
+Supervisors + ça == process hyper fiable qui tiennent à long terme.
+
+---
+
+# Conclusion ?
+
+---
+
+# Questions ?
